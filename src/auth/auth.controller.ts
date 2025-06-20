@@ -16,7 +16,7 @@ export class AuthController {
   @Get('github/callback')
   async githubCallback(@Req() req, @Res() res: Response) {
     const tokens = await this.authService.login(req.user.id);
-    res.redirect(`http://localhost:5173/dashboard?token=${tokens.accessToken}`);
+    res.redirect(`https://corethinkai.web.app/dashboard?token=${tokens.accessToken}`);
   }
 
   @UseGuards(GoogleAuthGuard)
@@ -27,6 +27,6 @@ export class AuthController {
   @Get('google/callback')
   async googleCallback(@Req() req, @Res() res: Response) {
     const tokens = await this.authService.login(req.user.id);
-    return res.redirect(`http://localhost:5173/dashboard?token=${tokens.accessToken}`);
+    return res.redirect(`https://corethinkai.web.app/dashboard?token=${tokens.accessToken}`);
   }
 }

@@ -49,7 +49,7 @@ export class MessagesService {
         res?: Response
     ): Promise<void> {
         let fullContent = '';
-        
+
         try {
             const selectedModel = model || 'deepseek-ai/DeepSeek-V3';
             this.logger.log(`Initiating Together AI STREAM request with model: ${selectedModel}`);
@@ -204,7 +204,7 @@ export class MessagesService {
             };
         } catch (error) {
             this.logger.error('Together AI request failed', error);
-            
+
             // Return error response instead of throwing
             return {
                 model: 'error',
@@ -265,7 +265,7 @@ export class MessagesService {
             };
         } catch (error) {
             this.logger.error('Chat request failed', error);
-            
+
             // Return error response instead of throwing
             return {
                 model: 'error',
@@ -279,6 +279,75 @@ export class MessagesService {
                 created: Date.now(),
                 requestId: 'error',
                 error: error.message || 'TC Wrapper service error'
+            };
+        }
+    }
+
+    async togetherChatWithTools(messages: ChatMessage[], tools?: any[], model?: string): Promise<any> {
+        try {
+            const selectedModel = model || 'meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo';
+            this.logger.log(`Initiating Together AI tools request with model: ${selectedModel}`);
+
+            if (!messages || messages.length === 0) {
+                return {
+                    model: 'error',
+                    choices: [{
+                        message: {
+                            role: 'assistant',
+                            content: 'Please provide messages to process.'
+                        }
+                    }],
+                    usage: { total_tokens: 0 },
+                    created: Date.now(),
+                    error: 'Messages array is required and cannot be empty'
+                };
+            }
+
+            const requestPayload: any = {
+                model: selectedModel,
+                messages: messages.map(msg => ({
+                    role: msg.role as 'system' | 'user' | 'assistant',
+                    content: msg.content,
+                })),
+                max_tokens: 4096,
+                temperature: 0.7,
+                top_p: 0.9,
+                stream: false,
+            };
+
+            // Add tools if provided
+            if (tools && tools.length > 0) {
+                requestPayload.tools = tools;
+                requestPayload.tool_choice = 'auto';
+            }
+
+            const response = await this.together.chat.completions.create(requestPayload);
+
+            this.logger.log('Together AI tools request completed successfully');
+
+            return {
+                model: response.model,
+                choices: response.choices,
+                usage: response.usage,
+                created: response.created,
+                requestId: 'together-ai-tools'
+            };
+        } catch (error) {
+            this.logger.error('Together AI tools request failed', error);
+
+            // Return error response instead of throwing
+            return {
+                model: 'error',
+                choices: [{
+                    message: {
+                        role: 'assistant',
+                        content: 'Sorry, the Together AI tools service is currently unavailable. Please try again later.'
+                    }
+                }],
+                usage: { total_tokens: 0 },
+                created: Date.now(),
+                requestId: 'error',
+                error: error.message || 'Together AI tools service error'
             };
         }
     }
@@ -323,7 +392,7 @@ export class MessagesService {
             };
         } catch (error) {
             this.logger.error('Text-to-SQL request failed', error);
-            
+
             // Return error response instead of throwing
             return {
                 question: question?.trim() || '',
@@ -368,7 +437,7 @@ export class MessagesService {
             return healthStatus;
         } catch (error) {
             this.logger.error('Health check failed', error);
-            
+
             // Return degraded status instead of throwing
             healthStatus.status = 'degraded';
             healthStatus.tcWrapper = {

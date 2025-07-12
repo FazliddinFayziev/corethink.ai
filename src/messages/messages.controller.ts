@@ -75,6 +75,28 @@ export class MessagesController {
     }
   }
 
+  @Post('togetherChatWithTools')
+  async togetherChatWithTools(
+    @Body('messages') messages: ChatMessage[],
+    @Body('tools') tools?: any[],
+    @Body('model') model?: string
+  ): Promise<ChatResponse> {
+    try {
+      const data = await this.messagesService.togetherChatWithTools(messages, tools, model);
+      return {
+        success: true,
+        data,
+        timestamp: new Date().toISOString(),
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message || 'Together AI tools service error',
+        timestamp: new Date().toISOString(),
+      };
+    }
+  }
+
   @Post('chat')
   async chat(@Body('messages') messages: ChatMessage[]): Promise<ChatResponse> {
     try {

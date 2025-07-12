@@ -1,98 +1,230 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TC Wrapper API Documentation
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A fast, OpenAI-compatible chat/completions API with built-in tool-calling capabilities.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Quick Start
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Endpoint
 
-## Project setup
-
-```bash
-$ npm install
+```
+https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev
 ```
 
-## Compile and run the project
+### API Keys
 
-```bash
-# development
-$ npm run start
+Use one of these in the `X-Api-Key` header:
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+ct-TestKey1  
+ct-TestKey2  
+ct-TestKey3
 ```
 
-## Run tests
+---
+
+## Basic Example
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+curl -X POST https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: ct-TestKey1" \
+  -d '{
+    "messages": [{"role": "user", "content": "Hello, how are you?"}]
+  }'
 ```
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## 🐍 Python Examples
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Simple Chat
+
+```python
+import requests
+
+def chat_with_tc(message, api_key="ct-TestKey1"):
+    r = requests.post(
+        "https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev/v1/chat/completions",
+        headers={
+            "Content-Type": "application/json",
+            "X-Api-Key": api_key
+        },
+        json={"messages": [{"role": "user", "content": message}]}
+    )
+    return r.json()
+
+# Example usage
+result = chat_with_tc("What is the capital of France?")
+print(result["choices"][0]["message"]["content"])
+```
+
+---
+
+### OpenAI-SDK Compatible
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev/v1",
+    api_key="ct-TestKey1"
+)
+
+response = client.chat.completions.create(
+    model="gpt-3.5-turbo",  # ignored by the service
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain machine learning in simple terms"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+---
+
+## Tool Calling Example
+
+```python
+import requests, json
+
+messages = [
+    {
+        "role": "system",
+        "content": """You have access to these tools:
+        1. calculator: Performs mathematical calculations
+           Parameters: expression (string)
+        2. get_weather: Gets current weather for a location
+           Parameters: location (string)"""
+    },
+    {"role": "user", "content": "What's 1234 * 5678 and what's the weather in Tokyo?"}
+]
+
+resp = requests.post(
+    "https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev/v1/chat/completions",
+    headers={"Content-Type": "application/json", "X-Api-Key": "ct-TestKey1"},
+    json={"messages": messages}
+)
+
+data = resp.json()
+tool_calls = data["choices"][0]["message"].get("tool_calls", [])
+for call in tool_calls:
+    name = call["function"]["name"]
+    args = call["function"]["arguments"]
+    print(f"- {name}: {args}")
+```
+
+---
+
+## 📋 Response Format
+
+Returns an OpenAI-compatible payload:
+
+```jsonc
+{
+  "id": "r1-1234567890",
+  "object": "chat.completion",
+  "created": 1234567890,
+  "model": "<internal-model>",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "…",          // empty if a tool call was made
+      "tool_calls": [          
+        {
+          "id": "call_r1_…",
+          "type": "function",
+          "function": {
+            "name": "function_name",
+            "arguments": "{\"param\":\"value\"}"
+          }
+        }
+      ]
+    },
+    "finish_reason": "tool_calls"
+  }],
+  "usage": { "prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0 }
+}
+```
+
+---
+
+## 🛠️ Complete Python Client
+
+```python
+# save as tc_client.py
+import requests, json
+from typing import List, Dict, Any
+
+class TCWrapperClient:
+    def __init__(self, api_key: str = "ct-TestKey1"):
+        self.base = "https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev"
+        self.s = requests.Session()
+        self.s.headers.update({
+            "Content-Type": "application/json",
+            "X-Api-Key": api_key
+        })
+
+    def chat(self, messages: List[Dict], **kwargs) -> Dict[str, Any]:
+        resp = self.s.post(f"{self.base}/v1/chat/completions",
+                           json={"messages": messages, **kwargs})
+        resp.raise_for_status()
+        return resp.json()
+
+    def ask(self, question: str) -> str:
+        out = self.chat([{"role":"user","content":question}])
+        m = out["choices"][0]["message"]
+        return m.get("content") or json.dumps(m.get("tool_calls"))
+
+    def health(self) -> Dict[str, str]:
+        r = self.s.get(f"{self.base}/health")
+        r.raise_for_status()
+        return r.json()
+
+if __name__ == "__main__":
+    client = TCWrapperClient()
+    print("Health:", client.health())
+    print("2+2 =", client.ask("What is 2+2?"))
+```
+
+---
+
+## 🔍 Testing Endpoints
+
+### Health Check
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+curl https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev/health
+# → {"status":"ok"}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Simple Chat
 
-## Resources
+```bash
+curl -X POST https://tc-wrapper-gateway-62rdzd8g.uc.gateway.dev/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: ct-TestKey1" \
+  -d '{"messages":[{"role":"user","content":"Say hello!"}]}'
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## ⚡ Performance & Usage
 
-## Support
+* **Response time**: \~1–3 s
+* **Rate limits**: 1000 req/min per key
+* **Concurrency**: supports multiple concurrent calls
+* **Tool calls**: when returned, execute them client-side and POST results back
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## 🔒 Security
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+* Keep your `X-Api-Key` secret
+* All requests are logged for debugging
+* Use exponential backoff on `429`/`5xx`
 
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Happy building! 🚀

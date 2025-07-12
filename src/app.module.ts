@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { AppController } from './app.controller';
+import { MessagesModule } from './messages/messages.module';
 import googleOauthConfig from './auth/config/google-oath.config';
 import githubOauthConfig from './auth/config/github-oauth.config';
 
@@ -17,6 +18,7 @@ import githubOauthConfig from './auth/config/github-oauth.config';
     DbModule,
     AuthModule,
     UserModule,
+    MessagesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
